@@ -1,4 +1,6 @@
 target/
 native/build/
+native/bin/
 native/.gradle/
 .DS_Store
+Settings.toml
