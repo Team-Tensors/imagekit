@@ -1,0 +1,17 @@
+[package]
+org = "tensors"
+name = "imagekit"
+version = "0.1.0"
+authors = ["Vishwa Jayawickrama"]
+description = "General-purpose image processing library for Ballerina. Supports crop, resize, rotate, flip, grayscale, format conversion, and thumbnail generation."
+readme = "README.md"
+keywords = ["image", "imaging", "crop", "resize", "rotate", "flip", "grayscale", "thumbnail", "convert", "png", "jpeg"]
+
+[platform.java21]
+graalvmCompatible = true
+
+[[platform.java21.dependency]]
+path = "native/build/libs/imagecrop-native.jar"
+groupId = "io.tensors"
+artifactId = "imagecrop-native"
+version = "0.1.0"
