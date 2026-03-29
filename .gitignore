@@ -6,4 +6,4 @@ native/.gradle/
 Settings.toml
 Congfig.toml
 config.toml
-Dependency.toml
+Dependencies.toml
