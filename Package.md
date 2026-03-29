@@ -26,7 +26,7 @@ Add `imagekit` to your `Ballerina.toml`:
 [[dependency]]
 org     = "tensors"
 name    = "imagekit"
-version = "0.1.0"
+version = "0.1.3"
 ```
 
 ### Step 2: Import the module
