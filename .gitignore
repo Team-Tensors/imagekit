@@ -4,3 +4,6 @@ native/bin/
 native/.gradle/
 .DS_Store
 Settings.toml
+Congfig.toml
+config.toml
+Dependency.toml
