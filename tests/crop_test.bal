@@ -5,8 +5,8 @@ import ballerina/io;
 // ── Fixture paths ─────────────────────────────────────────────────────
 // ORIG is never modified; all mutating tests work on WORK (a fresh copy).
 
-const ORIG  = "tests/fixtures/image.png";
-const WORK  = "tests/fixtures/_work.png";
+const ORIG  = "tests/fixtures/image1.jpeg";
+const WORK  = "tests/fixtures/_work.jpeg";
 
 isolated function removeFile(string path) {
     do {
@@ -68,16 +68,23 @@ function testCropInvalidMargins() {
 
 @test:Config {}
 function testCropDirectoryDryRun() returns error? {
-    CropSummary summary = check cropDirectory("tests/fixtures", dryRun = true);
+    check file:createDir("tests/fixtures/_drydir");
+    check file:copy(ORIG, "tests/fixtures/_drydir/image1.jpeg", file:REPLACE_EXISTING);
+
+    CropSummary summary = check cropDirectory("tests/fixtures/_drydir",
+        top = 20, bottom = 20, dryRun = true);
     io:println("Dry-run: " + summary.processed.toString() + " processed, "
         + summary.skipped.toString() + " skipped");
-    test:assertTrue(summary.processed > 0, msg = "should find at least one PNG");
+    test:assertTrue(summary.processed > 0, msg = "should find at least one image");
+
+    removeFile("tests/fixtures/_drydir/image1.jpeg");
+    do { check file:remove("tests/fixtures/_drydir"); } on fail {}
 }
 
 @test:Config {}
 function testCropDirectoryLive() returns error? {
     check file:createDir("tests/fixtures/_cropdir");
-    check file:copy(ORIG, "tests/fixtures/_cropdir/img.png", file:REPLACE_EXISTING);
+    check file:copy(ORIG, "tests/fixtures/_cropdir/img.jpeg", file:REPLACE_EXISTING);
 
     CropSummary summary = check cropDirectory("tests/fixtures/_cropdir", top = 20, bottom = 20);
     io:println("Crop dir: " + summary.processed.toString() + " processed, "
@@ -85,7 +92,7 @@ function testCropDirectoryLive() returns error? {
     test:assertEquals(summary.processed, 1,   msg = "should process exactly one file");
     test:assertTrue(summary.pixelReductionPct > 0.0, msg = "should report pixel reduction");
 
-    removeFile("tests/fixtures/_cropdir/img.png");
+    removeFile("tests/fixtures/_cropdir/img.jpeg");
     do { check file:remove("tests/fixtures/_cropdir"); } on fail {}
 }
 

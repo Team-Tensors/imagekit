@@ -2,14 +2,15 @@ import tensors/imagekit;
 import ballerina/io;
 
 // Demonstrates cropping UI chrome from a directory of screenshots.
-// Removes 32px from the top and 18px from the bottom of every PNG.
+// Removes 32px from the top and 18px from the bottom of each image.
+// Supports PNG, JPEG, BMP, and GIF.
 
 public function main() returns error? {
     imagekit:CropSummary summary = check imagekit:cropDirectory(
         "screenshots/",
         top    = 32,
         bottom = 18,
-        backup = true   // originals saved as *.orig.png
+        backup = true   // originals saved as *.orig.<ext>
     );
 
     io:println("Processed : " + summary.processed.toString());

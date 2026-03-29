@@ -105,17 +105,17 @@ public isolated function crop(
     }
 }
 
-# Crops all PNG files in a directory in-place.
-# Files ending in `.orig.png` (backups) are automatically excluded.
+# Crops all image files (PNG, JPEG, BMP, GIF) in a directory in-place.
+# Files containing `.orig.` in their name (backups) are automatically excluded.
 # All margins default to 0; pass explicit values to crop each edge.
 #
-# + dirPath  - path to the directory containing PNG images
+# + dirPath  - path to the directory containing images
 # + top      - pixels to remove from the top edge
 # + bottom   - pixels to remove from the bottom edge
 # + left     - pixels to remove from the left edge
 # + right    - pixels to remove from the right edge
 # + dryRun   - when `true`, log what would happen without writing any files
-# + backup   - when `true`, copy each original to `<name>.orig.png` before cropping
+# + backup   - when `true`, copy each original to `<name>.orig.<ext>` before cropping
 # + return   - `CropSummary` on success, `error` if the directory cannot be read
 public isolated function cropDirectory(
         string dirPath,
@@ -127,8 +127,8 @@ public isolated function cropDirectory(
         boolean backup = false) returns CropSummary|error {
 
     file:MetaData[] entries = check file:readDir(dirPath);
-    string[] pngs = entries
-        .filter(e => e.absPath.endsWith(".png") && !e.absPath.endsWith(".orig.png"))
+    string[] images = entries
+        .filter(e => isImageFile(e.absPath) && e.absPath.indexOf(".orig.") == ())
         .map(e => e.absPath);
 
     CropResult[] results   = [];
@@ -137,14 +137,14 @@ public isolated function cropDirectory(
     int          pixBefore = 0;
     int          pixAfter  = 0;
 
-    foreach string pngPath in pngs {
-        string dimStr = getImageDimensions(pngPath);
+    foreach string imgPath in images {
+        string dimStr = getImageDimensions(imgPath);
         if dimStr.startsWith("ERROR:") {
             string reason = dimStr.substring(6);
-            io:println("[SKIP] " + pngPath + " — " + reason);
+            io:println("[SKIP] " + imgPath + " — " + reason);
             skipped += 1;
             results.push({
-                fileName: pngPath, skipped: true, skipReason: reason,
+                fileName: imgPath, skipped: true, skipReason: reason,
                 widthBefore: 0, heightBefore: 0, widthAfter: 0, heightAfter: 0
             });
             continue;
@@ -156,10 +156,10 @@ public isolated function cropDirectory(
 
         if left >= x2 || top >= y2 {
             string reason = "margins exceed image size (" + w.toString() + "x" + h.toString() + ")";
-            io:println("[SKIP] " + pngPath + " — " + reason);
+            io:println("[SKIP] " + imgPath + " — " + reason);
             skipped += 1;
             results.push({
-                fileName: pngPath, skipped: true, skipReason: reason,
+                fileName: imgPath, skipped: true, skipReason: reason,
                 widthBefore: w, heightBefore: h, widthAfter: 0, heightAfter: 0
             });
             continue;
@@ -171,38 +171,39 @@ public isolated function cropDirectory(
         pixAfter  += nw * nh;
 
         if dryRun {
-            io:println("[DRY-RUN] " + pngPath + ": " + w.toString() + "x" + h.toString()
+            io:println("[DRY-RUN] " + imgPath + ": " + w.toString() + "x" + h.toString()
                 + " → " + nw.toString() + "x" + nh.toString());
             processed += 1;
             results.push({
-                fileName: pngPath, skipped: false, skipReason: (),
+                fileName: imgPath, skipped: false, skipReason: (),
                 widthBefore: w, heightBefore: h, widthAfter: nw, heightAfter: nh
             });
             continue;
         }
 
         if backup {
-            string bak = pngPath.substring(0, pngPath.length() - 4) + ".orig.png";
-            check file:copy(pngPath, bak, file:REPLACE_EXISTING);
-            io:println("[BACKUP] " + pngPath + " → " + bak);
+            string ext = fileExtension(imgPath);
+            string bak = imgPath.substring(0, imgPath.length() - ext.length()) + ".orig" + ext;
+            check file:copy(imgPath, bak, file:REPLACE_EXISTING);
+            io:println("[BACKUP] " + imgPath + " → " + bak);
         }
 
-        string cropErr = cropImageNative(pngPath, top, bottom, left, right);
+        string cropErr = cropImageNative(imgPath, top, bottom, left, right);
         if cropErr != "" {
-            io:println("[ERROR] " + pngPath + " — " + cropErr);
+            io:println("[ERROR] " + imgPath + " — " + cropErr);
             skipped += 1;
             results.push({
-                fileName: pngPath, skipped: true, skipReason: cropErr,
+                fileName: imgPath, skipped: true, skipReason: cropErr,
                 widthBefore: w, heightBefore: h, widthAfter: 0, heightAfter: 0
             });
             continue;
         }
 
-        io:println("[CROP] " + pngPath + ": " + w.toString() + "x" + h.toString()
+        io:println("[CROP] " + imgPath + ": " + w.toString() + "x" + h.toString()
             + " → " + nw.toString() + "x" + nh.toString());
         processed += 1;
         results.push({
-            fileName: pngPath, skipped: false, skipReason: (),
+            fileName: imgPath, skipped: false, skipReason: (),
             widthBefore: w, heightBefore: h, widthAfter: nw, heightAfter: nh
         });
     }
@@ -360,4 +361,15 @@ isolated function parseDimensions(string dimStr) returns [int, int]|error {
     int w = check int:fromString(dimStr.substring(0, sepIdx));
     int h = check int:fromString(dimStr.substring(sepIdx + 1));
     return [w, h];
+}
+
+isolated function isImageFile(string path) returns boolean {
+    string p = path.toLowerAscii();
+    return p.endsWith(".png") || p.endsWith(".jpg") || p.endsWith(".jpeg")
+        || p.endsWith(".bmp") || p.endsWith(".gif");
+}
+
+isolated function fileExtension(string path) returns string {
+    int dotIdx = path.lastIndexOf(".") ?: -1;
+    return dotIdx >= 0 ? path.substring(dotIdx) : "";
 }
