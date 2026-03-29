@@ -233,7 +233,10 @@ public class ImageCropper {
                 g.dispose();
                 fmt = "JPEG";
             }
-            ImageIO.write(out, fmt, new File(destPath.getValue()));
+            boolean written = ImageIO.write(out, fmt, new File(destPath.getValue()));
+            if (!written) {
+                return fail("No image writer available for format: " + fmt);
+            }
             return StringUtils.fromString("");
         } catch (IOException e) {
             return fail(e.getMessage());
