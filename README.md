@@ -1,6 +1,6 @@
 # imagekit
 
-[![Ballerina Central](https://img.shields.io/badge/Ballerina%20Central-tensors%2Fimagekit-blue)](https://central.ballerina.io/tensors/imagekit)
+[![Ballerina Central](https://img.shields.io/badge/Ballerina%20Central-tensors%2Fimagekit-blue)](https://central.ballerina.io/tensors/imagekit/latest)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![GitHub last commit](https://img.shields.io/github/last-commit/Team-Tensors/imagekit)](https://github.com/Team-Tensors/imagekit/commits/main)
 
@@ -18,7 +18,7 @@ Wraps Java's `javax.imageio` and `java.awt` via Ballerina–Java interop with ze
 |---|---|
 | `getInfo` | Read width, height, format, and file size |
 | `crop` | Remove pixels from each edge in-place |
-| `cropDirectory` | Batch-crop all PNGs in a directory |
+| `cropDirectory` | Batch-crop all images in a directory |
 | `resize` | Resize to exact pixel dimensions in-place |
 | `resizeToFit` | Resize to fit a bounding box (preserves aspect ratio) |
 | `rotate` | Rotate 90 / 180 / 270° clockwise in-place |
@@ -40,6 +40,8 @@ org     = "tensors"
 name    = "imagekit"
 version = "0.1.0"
 ```
+
+Full package documentation is available on [Ballerina Central](https://central.ballerina.io/tensors/imagekit/latest).
 
 ---
 
@@ -87,7 +89,7 @@ public function main() returns error? {
 
 | Example | Description |
 |---|---|
-| [crop-screenshots](examples/crop-screenshots/) | Crop UI chrome from a directory of PNG screenshots |
+| [crop-screenshots](examples/crop-screenshots/) | Crop UI chrome from a directory of screenshots |
 | [generate-thumbnails](examples/generate-thumbnails/) | Batch-generate thumbnails for a directory of images |
 | [batch-convert](examples/batch-convert/) | Convert all PNGs to JPEG and resize to fit 1280×720 |
 
@@ -133,6 +135,32 @@ bal test
 
 ---
 
+## Contributing
+
+Contributions are welcome! Please open an issue or submit a pull request on [GitHub](https://github.com/Team-Tensors/imagekit).
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/my-feature`)
+3. Commit your changes (`git commit -m 'Add my feature'`)
+4. Push to the branch (`git push origin feature/my-feature`)
+5. Open a Pull Request
+
+---
+
 ## License
 
-Apache License 2.0 — see [LICENSE](LICENSE).
+Copyright 2026 Tensors
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+&nbsp;&nbsp;&nbsp;&nbsp;http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+See the full license text in [LICENSE](LICENSE).
