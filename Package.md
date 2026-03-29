@@ -1,86 +1,111 @@
-# imagekit
+## Overview
 
-A general-purpose image processing library for Ballerina — the Ballerina equivalent of
-Python's [Pillow](https://python-pillow.org/). Wraps Java's `javax.imageio` and `java.awt`
-via Ballerina–Java interop. Supports PNG, JPEG, BMP, and GIF.
+[imagekit](https://github.com/Team-Tensors/imagekit) is a general-purpose image processing library for Ballerina — the Ballerina equivalent of Python's [Pillow](https://python-pillow.org/). It wraps Java's built-in `javax.imageio` and `java.awt` APIs via Ballerina–Java interop, requiring zero external Maven dependencies.
 
-## Quick Start
+### Key Features
+
+- Read image metadata: dimensions, format, and file size
+- Crop images by removing pixels from any edge
+- Resize to exact dimensions or fit within a bounding box while preserving aspect ratio
+- Rotate images clockwise by 90, 180, or 270 degrees
+- Flip images horizontally or vertically
+- Convert images to grayscale
+- Convert between formats: PNG, JPEG, BMP, GIF
+- Generate thumbnails
+- Batch-crop all PNGs in a directory with dry-run and backup support
+
+**Supported formats:** PNG · JPEG · BMP · GIF
+
+## Quickstart
+
+### Step 1: Add the dependency
+
+Add `imagekit` to your `Ballerina.toml`:
+
+```toml
+[[dependency]]
+org     = "tensors"
+name    = "imagekit"
+version = "0.1.0"
+```
+
+### Step 2: Import the module
 
 ```ballerina
 import tensors/imagekit;
-
-public function main() returns error? {
-    // Read image metadata
-    imagekit:ImageInfo info = check imagekit:getInfo("photo.png");
-    io:println(info.width.toString() + "x" + info.height.toString() + " " + info.format);
-
-    // Crop
-    check imagekit:crop("photo.png", top = 20, bottom = 20, left = 10, right = 10);
-
-    // Resize to exact dimensions
-    check imagekit:resize("photo.png", 1920, 1080);
-
-    // Resize preserving aspect ratio
-    check imagekit:resizeToFit("photo.png", 800, 600);
-
-    // Rotate 90° clockwise
-    check imagekit:rotate("photo.png", 90);
-
-    // Mirror
-    check imagekit:flipHorizontal("photo.png");
-    check imagekit:flipVertical("photo.png");
-
-    // Grayscale
-    check imagekit:toGrayscale("photo.png");
-
-    // Convert format
-    check imagekit:convert("photo.png", "photo.jpg", "JPEG");
-
-    // Create thumbnail (fits within 200×200, aspect ratio preserved)
-    check imagekit:thumbnail("photo.png", "thumb.png", 200, 200);
-}
 ```
 
-## Batch Crop
+### Step 3: Read image metadata
+
+```ballerina
+imagekit:ImageInfo info = check imagekit:getInfo("photo.png");
+io:println(info.width.toString() + "x" + info.height.toString() + " " + info.format);
+// 1920x1080 PNG
+```
+
+### Step 4: Transform images
+
+```ballerina
+// Crop 20px from top and bottom
+check imagekit:crop("photo.png", top = 20, bottom = 20);
+
+// Resize to 800x600
+check imagekit:resize("photo.png", 800, 600);
+
+// Resize preserving aspect ratio
+check imagekit:resizeToFit("photo.png", 800, 600);
+
+// Rotate 90° clockwise
+check imagekit:rotate("photo.png", 90);
+
+// Flip horizontally
+check imagekit:flipHorizontal("photo.png");
+
+// Convert to grayscale
+check imagekit:toGrayscale("photo.png");
+
+// Convert PNG to JPEG
+check imagekit:convert("photo.png", "photo.jpg", "JPEG");
+
+// Create a thumbnail (fits within 200×200, aspect ratio preserved)
+check imagekit:thumbnail("photo.png", "thumb.png", 200, 200);
+```
+
+### Step 5: Run
+
+```bash
+bal run
+```
+
+## Batch Operations
+
+Crop all PNG files in a directory in one call:
 
 ```ballerina
 imagekit:CropSummary summary = check imagekit:cropDirectory(
     "images/",
     top    = 20,
     bottom = 20,
-    backup = true   // saves originals as *.orig.png
+    backup = true   // save originals as *.orig.png
 );
-io:println("Cropped " + summary.processed.toString() + " files, "
-    + summary.pixelReductionPct.toString() + "% pixel reduction");
+
+io:println("Processed : " + summary.processed.toString());
+io:println("Skipped   : " + summary.skipped.toString());
+io:println("Reduction : " + summary.pixelReductionPct.toString() + "%");
 ```
 
-## API Reference
+Use `dryRun = true` to preview what would be cropped without writing any files:
 
-| Function           | Description                                              |
-|--------------------|----------------------------------------------------------|
-| `getInfo`          | Read width, height, format, and file size                |
-| `crop`             | Remove pixels from each edge in-place                    |
-| `cropDirectory`    | Batch-crop all PNGs in a directory                       |
-| `resize`           | Resize to exact pixel dimensions in-place                |
-| `resizeToFit`      | Resize to fit a bounding box (preserves aspect ratio)    |
-| `rotate`           | Rotate 90 / 180 / 270° clockwise in-place                |
-| `flipHorizontal`   | Mirror left↔right in-place                              |
-| `flipVertical`     | Mirror top↔bottom in-place                              |
-| `toGrayscale`      | Convert to grayscale in-place                            |
-| `convert`          | Convert to a different format, writing a new file        |
-| `thumbnail`        | Create a scaled copy fitting a bounding box              |
+```ballerina
+imagekit:CropSummary preview = check imagekit:cropDirectory("images/", dryRun = true);
+```
 
-## Comparison with Pillow
+## Examples
 
-| Pillow                              | imagekit                                    |
-|-------------------------------------|---------------------------------------------|
-| `Image.open(f).size`                | `getInfo(f)` → `ImageInfo`                  |
-| `img.crop((l, t, r, b))`           | `crop(f, top, bottom, left, right)`         |
-| `img.resize((w, h))`               | `resize(f, w, h)`                           |
-| `img.thumbnail((w, h))`            | `resizeToFit(f, w, h)`                      |
-| `img.rotate(deg)`                  | `rotate(f, deg)`                            |
-| `ImageOps.mirror(img)`             | `flipHorizontal(f)`                         |
-| `ImageOps.flip(img)`               | `flipVertical(f)`                           |
-| `img.convert("L")`                 | `toGrayscale(f)`                            |
-| `img.save("out.jpg")`              | `convert(src, dest, "JPEG")`                |
-| `img.thumbnail((w, h)); img.save`  | `thumbnail(src, dest, w, h)`                |
+The `imagekit` library provides practical examples illustrating usage in various scenarios. Explore these [examples](https://github.com/Team-Tensors/imagekit/tree/main/examples/), covering the following use cases:
+
+1. [Crop screenshots](https://github.com/Team-Tensors/imagekit/tree/main/examples/crop-screenshots) — Crop UI chrome (tab bars, status bars) from a directory of PNG screenshots.
+
+2. [Generate thumbnails](https://github.com/Team-Tensors/imagekit/tree/main/examples/generate-thumbnails) — Batch-generate 200×200 thumbnails for all images in a directory, preserving aspect ratio.
+
+3. [Batch convert](https://github.com/Team-Tensors/imagekit/tree/main/examples/batch-convert) — Convert all PNGs to JPEG and resize them to fit within 1280×720.

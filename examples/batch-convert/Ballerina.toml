@@ -1,0 +1,9 @@
+[package]
+org  = "tensors"
+name = "batch_convert"
+version = "0.1.0"
+
+[[dependency]]
+org     = "tensors"
+name    = "imagekit"
+version = "0.1.0"
