@@ -1,0 +1,8 @@
+target/
+output/
+.DS_Store
+Config.toml
+config.toml
+Dependencies.toml
+# Backup files created by cropDirectory backup=true
+*.orig.*
